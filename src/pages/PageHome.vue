@@ -19,7 +19,17 @@
             </template>
           </q-input>
         </div>
-        <div class="col col-shrink">
+        <div class="col col-shrink row q-gutter-sm">
+          <q-btn
+            @click="saveDraft"
+            :disable="!newQweetContent"
+            class="q-mb-lg"
+            color="secondary"
+            label="Save"
+            rounded
+            outline
+            no-caps
+          />
           <q-btn
             @click="addNewQweet"
             :disable="!newQweetContent"
@@ -117,6 +127,8 @@
 import db from 'src/boot/firebase'
 import { formatDistance } from 'date-fns'
 
+const DRAFT_STORAGE_KEY = 'qwitter-draft'
+
 export default {
   name: 'PageHome',
   data() {
@@ -153,6 +165,20 @@ export default {
         console.error('Error adding document: ', error)
       })
       this.newQweetContent = ''
+      this.clearDraft()
+    },
+    saveDraft() {
+      localStorage.setItem(DRAFT_STORAGE_KEY, this.newQweetContent)
+      this.$q.notify({
+        message: 'Draft saved',
+        color: 'secondary',
+        icon: 'save',
+        position: 'top',
+        timeout: 1500
+      })
+    },
+    clearDraft() {
+      localStorage.removeItem(DRAFT_STORAGE_KEY)
     },
     deleteQweet(qweet) {
       db.collection('qweets').doc(qweet.id).delete().then(function() {
@@ -192,6 +218,11 @@ export default {
     }
   },
   mounted() {
+    const draft = localStorage.getItem(DRAFT_STORAGE_KEY)
+    if (draft) {
+      this.newQweetContent = draft
+    }
+
     db.collection('qweets').orderBy('date').onSnapshot(snapshot => {
       snapshot.docChanges().forEach(change => {
         let qweetChange = change.doc.data()
