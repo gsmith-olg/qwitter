@@ -82,7 +82,7 @@
                 />
                 <q-btn
                   @click="toggleLiked(qweet)"
-                  :color="qweet.liked ? 'green' : 'white'"
+                  :color="qweet.liked ? 'blue' : 'black'"
                   :icon="qweet.liked ? 'fas fa-heart' : 'far fa-heart'"
                   size="sm"
                   flat
