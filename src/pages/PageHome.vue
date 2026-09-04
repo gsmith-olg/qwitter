@@ -21,6 +21,15 @@
         </div>
         <div class="col col-shrink">
           <q-btn
+            @click="confirmAction"
+            class="q-mb-lg q-mr-sm"
+            color="secondary"
+            label="Confirm"
+            rounded
+            unelevated
+            no-caps
+          />
+          <q-btn
             @click="addNewQweet"
             :disable="!newQweetContent"
             class="q-mb-lg"
@@ -139,6 +148,9 @@ export default {
     }
   },
   methods: {
+    confirmAction() {
+      console.log('Confirmed!')
+    },
     addNewQweet() {
       let newQweet = {
         content: this.newQweetContent,
