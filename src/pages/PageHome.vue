@@ -19,7 +19,17 @@
             </template>
           </q-input>
         </div>
-        <div class="col col-shrink">
+        <div class="col col-shrink row q-col-gutter-sm">
+          <q-btn
+            @click="migrateQweets"
+            class="q-mb-lg"
+            color="grey"
+            icon="fas fa-sync-alt"
+            label="Migrate"
+            outline
+            rounded
+            no-caps
+          />
           <q-btn
             @click="addNewQweet"
             :disable="!newQweetContent"
@@ -184,6 +194,49 @@ export default {
         // The document probably doesn't exist.
         console.error('Error updating document: ', error)
       })
+    },
+    async migrateQweets() {
+      // Backfills older qweet documents that predate the "liked"/"saved"
+      // fields so every qweet in the collection has a consistent shape.
+      try {
+        const snapshot = await db.collection('qweets').get()
+        const batch = db.batch()
+        let migratedCount = 0
+
+        snapshot.forEach(doc => {
+          const data = doc.data()
+          const updates = {}
+
+          if (typeof data.liked === 'undefined') {
+            updates.liked = false
+          }
+          if (typeof data.saved === 'undefined') {
+            updates.saved = false
+          }
+
+          if (Object.keys(updates).length > 0) {
+            batch.update(doc.ref, updates)
+            migratedCount++
+          }
+        })
+
+        if (migratedCount > 0) {
+          await batch.commit()
+        }
+
+        this.$q.notify({
+          type: 'positive',
+          message: migratedCount > 0
+            ? `Migrated ${migratedCount} qweet${migratedCount === 1 ? '' : 's'} to the latest format.`
+            : 'All qweets are already up to date.'
+        })
+      } catch (error) {
+        console.error('Error migrating qweets: ', error)
+        this.$q.notify({
+          type: 'negative',
+          message: 'Migration failed. See console for details.'
+        })
+      }
     }
   },
   filters: {
